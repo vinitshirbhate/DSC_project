@@ -1,9 +1,9 @@
-import { MapData } from "../utils/types";
+import { MapData, UserMapData } from "../utils/types";
 
 export class MemoryCache {
-  private static memory = new Map<string, MapData>();
+  private static memory = new Map<string, MapData | UserMapData>();
 
-  static setMemory(key : string,value : MapData) {
+  static setMemory(key : string,value : MapData | UserMapData) {
     this.memory.set(key,value);
   }
 
@@ -17,7 +17,10 @@ export class MemoryCache {
         return null;
     }
 
-    return item.data;
+    if ('data' in item) {
+      return item.data;
+    }
+    return item;
   }
 
   static clear(){
