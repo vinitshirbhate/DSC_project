@@ -481,4 +481,25 @@ export class UserController {
       }, 500);
     }
   }
+
+  static async me(c : Context) {
+    try {
+      const payload = c.get("jwtPayload");
+
+      if(!payload) throw new Error("Unauthorized")
+
+      return c.json({
+        message : "Authorized",
+        success : true,
+        payload
+      })
+
+    } catch (error) {
+      return c.json({
+        error: error instanceof Error ? error.message : String(error),
+        message: "Something went wrong!",
+        success: false
+      }, 500);
+    }
+  }
 }

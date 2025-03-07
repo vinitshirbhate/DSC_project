@@ -1,12 +1,13 @@
 import { sign } from "hono/jwt";
 import { signData } from "./types";
 
-export const generateToken = async (data: signData, secret: string,refershSecret : string) => {
-  const accessToken = await sign(data, secret);
+export const generateToken = async (data: signData, secret: string, refreshSecret: string) => {
 
-  data.exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
+  const accessData = { ...data, exp: Math.floor(Date.now() / 1000) + 60 * 60}; 
+  const refreshData = { ...data, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 }; 
 
-  const refreshToken = await sign(data, refershSecret);
+  const accessToken = await sign(accessData, secret);
+  const refreshToken = await sign(refreshData, refreshSecret);
 
   return { accessToken, refreshToken };
 };
