@@ -608,7 +608,7 @@ export class UserController {
         message : "Authorized",
         success : true,
         payload
-      })
+      },200)
 
     } catch (error) {
       return c.json({
