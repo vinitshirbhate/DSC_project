@@ -2,7 +2,9 @@
   "name": "authBackend",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy --minify"
+    "deploy": "wrangler deploy --minify",
+    "test": "vitest",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@hono/swagger-ui": "^0.5.1",
@@ -22,6 +24,7 @@
     "@types/node": "^22.13.8",
     "prettier": "3.5.2",
     "prisma": "^6.4.1",
+    "vitest": "^3.0.8",
     "wrangler": "^3.109.2"
   }
 }
