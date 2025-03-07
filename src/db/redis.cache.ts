@@ -1,4 +1,4 @@
-import { Redis } from "@upstash/redis";
+import { Redis } from "@upstash/redis/cloudflare";
 import { Context } from "hono";
 import { MapData } from "../utils/types";
 
@@ -10,8 +10,8 @@ export class RedisSingleton {
 
   static getInstance(c: Context): Redis {
     if (!this.instance) {
-      const url = c.env?.UPSTASH_REDIS_REST_URL;
-      const token = c.env?.UPSTASH_REDIS_REST_TOKEN;
+      const url = c.env.UPSTASH_REDIS_REST_URL;
+      const token = c.env.UPSTASH_REDIS_REST_TOKEN;
 
       if (!url || !token) {
         throw new Error("Missing Redis environment variables");
