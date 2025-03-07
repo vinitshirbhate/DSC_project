@@ -4,4 +4,4 @@ export default {
   fetch: app.fetch
 };
 
-console.log("server Running ");
+console.log("server Running on port 8787");
