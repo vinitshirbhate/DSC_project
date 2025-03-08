@@ -1,95 +1,151 @@
-# Redis & MemoryCache Integration
+# Hono.js Authentication Backend
 
-This repository provides a Redis singleton instance for persistent caching and a lightweight in-memory cache for temporary storage. The combination of both ensures efficient and reliable data management for Hono applications.
+A Cloudflare Workers backend built with [Hono.js](https://hono.dev/) that provides authentication endpoints, Swagger API documentation, and health check functionality. The project uses Prisma to connect to a PostgreSQL database and Upstash Redis for caching.
 
----
+## Table of Contents
 
-## 🔥 Redis Singleton
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Environment Variables](#environment-variables)
+- [Development](#development)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [API Documentation](#api-documentation)
+- [Contributing](#contributing)
 
-The `RedisSingleton` class provides a globally accessible Redis client with a default TTL (Time-To-Live) for setting values.
+## Features
 
-### Features:
+- **Authentication:**  
+  Custom in-house authentication logic with password hashing and JWT token generation.
 
-- Singleton pattern ensures only one Redis instance is created.
-- Default TTL of 1 hour (3600 seconds) for all keys.
-- Supports overriding TTL when setting values.
+- **Health Check:**  
+  A dedicated `/health` endpoint that verifies connectivity to PostgreSQL and Redis.
 
-### Usage:
+- **Swagger API Docs:**  
+  Interactive API documentation available at `/api/v1/docs`.
 
-```ts
-await RedisSingleton.set(c, "user:123", { name: "John Doe", age: 30 }); // Uses default TTL
-await RedisSingleton.set(c, "user:456", { name: "Jane Doe", age: 25 }, 7200); // Custom TTL of 2 hours
+- **Caching:**  
+  Uses an in-memory cache and Upstash Redis for performance improvements.
+
+- **Cloudflare Workers:**  
+  Leverages Cloudflare Workers for edge computing, with full compatibility via Wrangler.
+
+## Project Structure
+
+```
+├── src
+│ ├── controllers
+│ │ └── UserController.ts # Authentication & user routes
+│ ├── db
+│ │ ├── prisma.ts # Prisma client initialization
+│ │ └── redis.cache.ts # Redis singleton for caching
+│ ├── models
+│ │ └── user.model.ts # User schema & validation
+│ ├── routes
+│ │ ├── index.ts # API routes setup
+│ │ └── swagger.ts # Swagger documentation setup
+│ ├── utils
+│ │ ├── generateToken.ts # JWT token generation utility
+│ │ └── types.ts # Common types for caching and responses
+│ └── index.ts # Main entry point for the Worker
+├── tests
+│ └── auth.test.ts # Vitest test cases for authentication endpoints
+├── wrangler.sample.jsonc # Wrangler configuration sample
+├── package.json
+└── README.md
 ```
 
----
+## Getting Started
 
-## 🚀 MemoryCache (In-Memory Storage)
+### Prerequisites
 
-The `MemoryCache` class provides an in-memory cache with optional expiration for quick access.
+- [Node.js](https://nodejs.org/) (v16+ recommended)
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) for Cloudflare Workers deployments
+- A Cloudflare account
+- PostgreSQL database credentials
+- Upstash Redis credentials
 
-### Features:
+### Installation
 
-- Stores key-value pairs in memory.
-- Supports TTL-based expiration.
-- Provides methods for setting, retrieving, deleting, and clearing the cache.
+1. **Clone the repository:**
 
-### Usage:
-
-```ts
-MemoryCache.setMemory("session:123", {
-  data: "some session data",
-  expiry: Date.now() + 60000,
-}); // Expires in 1 minute
-const session = MemoryCache.getMemory("session:123"); // Retrieve session data
-MemoryCache.delete("session:123"); // Remove specific key
-MemoryCache.clear(); // Clear all cache
-```
-
----
-
-## 🛠 Setting Up Wrangler for Hono
-
-To run the Hono application with Cloudflare Workers, you need a `wrangler.jsonc` file.
-
-### Steps:
-
-1. Copy `wrangler.sample.jsonc` to `wrangler.jsonc`.
-2. Update the required fields like `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, and `kv_namespaces`.
-3. Run the following command to start the Hono application:
-   ```sh
-   wrangler dev
+   ```bash
+   git clone https://github.com/vinitshirbhate/DSC_project.git
+   cd DSC_project
    ```
 
-### Sample `wrangler.jsonc` File:
+2. **Install dependencies:**
 
-```jsonc
-{
-  "compatibility_date": "2024-03-03",
-  "node_compat": true,
-  "env": {
-    "production": {
-      "UPSTASH_REDIS_REST_URL": "your-redis-url",
-      "UPSTASH_REDIS_REST_TOKEN": "your-redis-token",
-    },
-  },
-}
+   ```bash
+   npm install
+   ```
+
+### Environment Variables
+
+For local development, rename a `.env.sample`-> `.env` file in the root directory:
+
+```env
+DATABASE_URL=prisma+postgres://username:password@host:port/database?sslmode=require
 ```
 
----
+Also Rename the `wrangler.sample.jsonc`-> `wrangler.jsonc` file in the root directory and update the vars with your own values.
 
-## 🔗 Conclusion
+## Development
 
-- Use **RedisSingleton** for persistent caching with automatic TTL.
-- Use **MemoryCache** for quick, temporary data storage.
-- Configure **wrangler.jsonc** properly to run the Hono app with Cloudflare Workers.
+To run the project locally with Cloudflare Workers emulation:
 
-## Run scripts
-
-```
-npm install
+```bash
 npm run dev
 ```
 
-```
-npm run deploy
-```
+This command uses your local environment variables and simulates the Cloudflare Workers environment.
+
+## Testing
+
+The project uses [Vitest](https://vitest.dev/) for testing.
+
+1. **Run Tests:**
+
+   ```bash
+   npm run test
+   ```
+
+Tests cover endpoints such as user registration, login, and health checks.
+
+## Deployment
+
+To deploy your project to Cloudflare Workers:
+
+1. **Build (optional):**
+
+   If you need to build your project (e.g., if you're using TypeScript):
+
+   ```bash
+   npm run build
+   ```
+
+2. **Publish:**
+
+   ```bash
+   npx wrangler publish
+   ```
+
+Remember to use `wrangler secret put` for setting production secrets, as detailed in the [Environment Variables](#environment-variables) section.
+
+## API Documentation
+
+Interactive API documentation is available using Swagger. Once your project is running, navigate to [http://localhost:8787/api/v1/docs](http://localhost:8787/api/v1/docs) to explore and test the API endpoints.
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Write tests for your changes.
+4. Submit a pull request with a detailed description.
+
+Happy coding!

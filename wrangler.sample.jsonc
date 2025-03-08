@@ -1,0 +1,56 @@
+// This file is a template for the `wrangler.json` file. It's not meant to be used directly.
+// wrangler.sample.jsonc -> wrangler.json
+//Change the vars with your own values
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  "name": "authbackend",
+
+  "main": "src/index.ts",
+
+  "compatibility_date": "2025-03-02",
+
+  "compatibility_flags": ["nodejs_compat"],
+
+  "vars": {
+    "DATABASE_URL": "prisma+postgres://username:password@host:port/database?sslmode=require",
+
+    "UPSTASH_REDIS_REST_URL": "https://your-upstash-redis-endpoint.upstash.io",
+    "UPSTASH_REDIS_REST_TOKEN": "your-upstash-redis-token",
+
+    "JWT_SECRET": "your_jwt_secret",
+    "ACCESS_SECRET": "your_access_secret",
+    "REFRESH_SECRET": "your_refresh_secret",
+  },
+
+  "kv_namespaces": [
+    {
+      "binding": "MY_KV_NAMESPACE",
+      "id": "your-kv-namespace-id",
+    },
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "MY_BUCKET",
+      "bucket_name": "my-bucket",
+    },
+  ],
+
+  "d1_databases": [
+    {
+      "binding": "MY_DB",
+      "database_name": "my-database",
+      "database_id": "your-database-id",
+    },
+  ],
+
+  "ai": {
+    "binding": "AI",
+  },
+
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+}
