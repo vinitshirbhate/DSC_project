@@ -10,4 +10,5 @@ export const userRouter = new Hono()
   .post("/logout", async (c) => {
     return c.text("Hello logout!");
   })
+  .delete("/deleteUser", UserController.deleteUser)
   .get("/me", authMiddleware, UserController.me);
