@@ -7,13 +7,13 @@ export const swaggerConfig = {
   },
   servers: [
     {
-      url: 'http://localhost:8787',
-      description: 'Development Server'
+      url: "http://localhost:8787",
+      description: "Development Server",
     },
     {
-      url: 'https://authbackend.ombaji124-d31.workers.dev',
-      description: "Production Server"
-    }
+      url: "https://authbackend.ombaji124-d31.workers.dev",
+      description: "Production Server",
+    },
   ],
   tags: [{ name: "User", description: "Operations related to users" }],
   components: {
@@ -22,16 +22,32 @@ export const swaggerConfig = {
         type: "object",
         properties: {
           name: { type: "string", example: "John Doe" },
-          email: { type: "string", format: "email", example: "john@example.com" },
-          password: { type: "string", format: "password", example: "securepassword123" },
+          email: {
+            type: "string",
+            format: "email",
+            example: "john@example.com",
+          },
+          password: {
+            type: "string",
+            format: "password",
+            example: "securepassword123",
+          },
         },
         required: ["name", "email", "password"],
       },
       UserLogin: {
         type: "object",
         properties: {
-          email: { type: "string", format: "email", example: "john@example.com" },
-          password: { type: "string", format: "password", example: "securepassword123" },
+          email: {
+            type: "string",
+            format: "email",
+            example: "john@example.com",
+          },
+          password: {
+            type: "string",
+            format: "password",
+            example: "securepassword123",
+          },
         },
         required: ["email", "password"],
       },
@@ -39,7 +55,11 @@ export const swaggerConfig = {
         type: "object",
         properties: {
           name: { type: "string", example: "John Updated" },
-          email: { type: "string", format: "email", example: "johnupdated@example.com" },
+          email: {
+            type: "string",
+            format: "email",
+            example: "johnupdated@example.com",
+          },
         },
       },
       UserResponse: {
@@ -98,7 +118,10 @@ export const swaggerConfig = {
                   type: "object",
                   properties: {
                     message: { type: "string", example: "User registered!" },
-                    token: { type: "string", example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+                    token: {
+                      type: "string",
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    },
                     user: { $ref: "#/components/schemas/UserResponse" },
                     success: { type: "boolean", example: true },
                   },
@@ -162,7 +185,10 @@ export const swaggerConfig = {
                   type: "object",
                   properties: {
                     message: { type: "string", example: "Login successful!" },
-                    token: { type: "string", example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+                    token: {
+                      type: "string",
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    },
                     user: { $ref: "#/components/schemas/UserResponse" },
                     success: { type: "boolean", example: true },
                   },
@@ -348,6 +374,8 @@ export const swaggerConfig = {
           },
         },
       },
+    },
+    "/api/v1/deleteUser": {
       delete: {
         tags: ["User"],
         summary: "Delete a user",
@@ -526,7 +554,10 @@ export const swaggerConfig = {
                 schema: {
                   type: "object",
                   properties: {
-                    message: { type: "string", example: "User data retrieved!" },
+                    message: {
+                      type: "string",
+                      example: "User data retrieved!",
+                    },
                     user: { $ref: "#/components/schemas/UserResponse" },
                     success: { type: "boolean", example: true },
                   },
