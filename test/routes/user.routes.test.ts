@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { userRouter } from "../../src/routes/user.routes";
 import { UserController } from "../../src/controllers/user.controller";
+import { authMiddleware } from "../../src/middlewares/auth.middleware";
+
+vi.mock("../../src/middlewares/auth.middleware", () => ({
+  authMiddleware: vi.fn((c, next) => {
+    c.set("user", { id: "test-id", email: "test@example.com" });
+    return next();
+  }),
+}));
 
 vi.mock("../../src/controllers/user.controller", () => ({
   UserController: {

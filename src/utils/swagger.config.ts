@@ -374,6 +374,8 @@ export const swaggerConfig = {
           },
         },
       },
+    },
+    "/api/v1/deleteUser": {
       delete: {
         tags: ["User"],
         summary: "Delete a user",

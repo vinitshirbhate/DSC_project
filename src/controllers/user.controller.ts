@@ -189,7 +189,6 @@ export class UserController {
         },
         200
       );
-
     } catch (error) {
       return c.json(
         {
@@ -457,7 +456,6 @@ export class UserController {
         },
         200
       );
-
     } catch (error) {
       return c.json(
         {
@@ -576,24 +574,29 @@ export class UserController {
     }
   }
 
-  static async me(c : Context) {
+  static async me(c: Context) {
     try {
       const payload = c.get("jwtPayload");
 
-      if(!payload) throw new Error("Unauthorized")
+      if (!payload) throw new Error("Unauthorized");
 
-      return c.json({
-        message : "Authorized",
-        success : true,
-        payload
-      },200)
-
+      return c.json(
+        {
+          message: "Authorized",
+          success: true,
+          payload,
+        },
+        200
+      );
     } catch (error) {
-      return c.json({
-        error: error instanceof Error ? error.message : String(error),
-        message: "Something went wrong!",
-        success: false
-      }, 500);
+      return c.json(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          message: "Something went wrong!",
+          success: false,
+        },
+        500
+      );
     }
   }
 
