@@ -7,13 +7,13 @@ export const swaggerConfig = {
   },
   servers: [
     {
-      url: 'http://localhost:8787',
-      description: 'Development Server'
+      url: "http://localhost:8787",
+      description: "Development Server",
     },
     {
-      url: 'https://authbackend.ombaji124-d31.workers.dev',
-      description: "Production Server"
-    }
+      url: "https://authbackend.ombaji124-d31.workers.dev",
+      description: "Production Server",
+    },
   ],
   tags: [{ name: "User", description: "Operations related to users" }],
   components: {
@@ -22,16 +22,32 @@ export const swaggerConfig = {
         type: "object",
         properties: {
           name: { type: "string", example: "John Doe" },
-          email: { type: "string", format: "email", example: "john@example.com" },
-          password: { type: "string", format: "password", example: "securepassword123" },
+          email: {
+            type: "string",
+            format: "email",
+            example: "john@example.com",
+          },
+          password: {
+            type: "string",
+            format: "password",
+            example: "securepassword123",
+          },
         },
         required: ["name", "email", "password"],
       },
       UserLogin: {
         type: "object",
         properties: {
-          email: { type: "string", format: "email", example: "john@example.com" },
-          password: { type: "string", format: "password", example: "securepassword123" },
+          email: {
+            type: "string",
+            format: "email",
+            example: "john@example.com",
+          },
+          password: {
+            type: "string",
+            format: "password",
+            example: "securepassword123",
+          },
         },
         required: ["email", "password"],
       },
@@ -39,7 +55,11 @@ export const swaggerConfig = {
         type: "object",
         properties: {
           name: { type: "string", example: "John Updated" },
-          email: { type: "string", format: "email", example: "johnupdated@example.com" },
+          email: {
+            type: "string",
+            format: "email",
+            example: "johnupdated@example.com",
+          },
         },
       },
       UserResponse: {
@@ -98,7 +118,10 @@ export const swaggerConfig = {
                   type: "object",
                   properties: {
                     message: { type: "string", example: "User registered!" },
-                    token: { type: "string", example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+                    token: {
+                      type: "string",
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    },
                     user: { $ref: "#/components/schemas/UserResponse" },
                     success: { type: "boolean", example: true },
                   },
@@ -162,7 +185,10 @@ export const swaggerConfig = {
                   type: "object",
                   properties: {
                     message: { type: "string", example: "Login successful!" },
-                    token: { type: "string", example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+                    token: {
+                      type: "string",
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    },
                     user: { $ref: "#/components/schemas/UserResponse" },
                     success: { type: "boolean", example: true },
                   },
@@ -474,18 +500,26 @@ export const swaggerConfig = {
         },
       },
     },
-    "/api/v1/logout": {
-      post: {
+    "/api/v1/me": {
+      get: {
         tags: ["User"],
-        summary: "Logout endpoint",
+        summary: "Get current user info",
         security: [{ bearerAuth: [] }],
         responses: {
           "200": {
-            description: "Logout successful",
+            description: "User data retrieved successfully",
             content: {
               "application/json": {
                 schema: {
-                  $ref: "#/components/schemas/SuccessResponse",
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "User data retrieved!",
+                    },
+                    user: { $ref: "#/components/schemas/UserResponse" },
+                    success: { type: "boolean", example: true },
+                  },
                 },
               },
             },
@@ -513,23 +547,18 @@ export const swaggerConfig = {
         },
       },
     },
-    "/api/v1/me": {
-      get: {
+    "/api/v1/logout": {
+      post: {
         tags: ["User"],
-        summary: "Get current user info",
+        summary: "Logout a user",
         security: [{ bearerAuth: [] }],
         responses: {
           "200": {
-            description: "User data retrieved successfully",
+            description: "Logout successful",
             content: {
               "application/json": {
                 schema: {
-                  type: "object",
-                  properties: {
-                    message: { type: "string", example: "User data retrieved!" },
-                    user: { $ref: "#/components/schemas/UserResponse" },
-                    success: { type: "boolean", example: true },
-                  },
+                  $ref: "#/components/schemas/SuccessResponse",
                 },
               },
             },
@@ -544,8 +573,47 @@ export const swaggerConfig = {
               },
             },
           },
-          "500": {
-            description: "Server error",
+        },
+      },
+    },
+    "/api/v1/refresh": {
+      get: {
+        tags: ["User"],
+        summary: "Refresh access token",
+        parameters: [
+          {
+            name: "token",
+            in: "query",
+            required: true,
+            schema: { type: "string" },
+            description: "Refresh token",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Token refreshed successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Token refreshed successfully!",
+                    },
+                    token: {
+                      type: "string",
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    },
+                    user: { $ref: "#/components/schemas/UserResponse" },
+                    success: { type: "boolean", example: true },
+                  },
+                },
+              },
+            },
+          },
+          "400": {
+            description: "Missing refresh token",
             content: {
               "application/json": {
                 schema: {
