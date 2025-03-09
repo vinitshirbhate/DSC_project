@@ -90,6 +90,7 @@ export class UserController {
             id: user.id,
             name: user.name,
             email: user.email,
+            refreshToken
           },
           success: true,
         },
@@ -376,14 +377,6 @@ export class UserController {
         200
       );
 
-      return c.json(
-        {
-          message: "User updated!",
-          user,
-          success: true,
-        },
-        201
-      );
     } catch (error) {
       if (
         error instanceof Error &&
@@ -600,6 +593,144 @@ export class UserController {
         {
           error: error instanceof Error ? error.message : String(error),
           message: "Something went wrong!",
+          success: false,
+        },
+        500
+      );
+    }
+  }
+
+  static async logout(c: Context) {
+    try {
+      const payload = c.get("jwtPayload");
+      if (!payload || !payload.id) {
+        return c.json(
+          {
+            error: "Unauthorized",
+            message: "User not logged in",
+            success: false,
+          },
+          401
+        );
+      }
+      
+      const userId = payload.id;
+      const prisma = await getPrismaClient(c.env.DATABASE_URL);
+      const redisClient = RedisSingleton.getInstance(c);
+      
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          accessToken: "",
+          refreshToken: "",
+        },
+      });
+      
+      MemoryCache.delete(`access:${userId}`);
+      await redisClient.del(`access:${userId}`);
+      
+      return c.json(
+        {
+          message: "Logout successful!",
+          success: true,
+        },
+        200
+      );
+    } catch (error) {
+      return c.json(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          message: "Something went wrong during logout!",
+          success: false,
+        },
+        500
+      );
+    }
+  }
+
+  static async refresh(c: Context) {
+    try {
+      const prisma = getPrismaClient(c.env.DATABASE_URL);
+      const redisClient = RedisSingleton.getInstance(c);
+
+      const refreshToken = c.req.query('token');
+
+      if (!refreshToken) {
+        return c.json(
+          {
+            error: "Missing refresh token",
+            message: "Refresh token is required",
+            success: false,
+          },
+          400
+        );
+      }
+
+      const user = await prisma.user.findFirst({
+        where: { refreshToken },
+      });
+
+      if (!user) {
+        return c.json(
+          {
+            error: "Invalid refresh token",
+            message: "Refresh token is invalid or expired",
+            success: false,
+          },
+          401
+        );
+      }
+
+      const exp = Math.floor(Date.now() / 1000) + 60 * 60; 
+      const { accessToken, refreshToken: newRefreshToken } = await generateToken(
+        {
+          id: user.id,
+          email: user.email,
+          exp,
+        },
+        c.env.ACCESS_SECRET,
+        c.env.REFRESH_SECRET
+      );
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          accessToken,
+          refreshToken: newRefreshToken,
+        },
+      });
+
+      const cacheData = {
+        expiry: exp,
+        data: {
+          token: accessToken,
+          meta: user.email,
+        },
+      } as MapData;
+
+      MemoryCache.setMemory(`access:${user.id}`, cacheData);
+      await redisClient.set(`access:${user.id}`, cacheData);
+      await redisClient.expire(`access:${user.id}`, 60 * 60);
+
+      return c.json(
+        {
+          message: "Token refreshed successfully!",
+          token: accessToken,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            refreshToken: newRefreshToken,
+          },
+          success: true,
+        },
+        200
+      );
+    } catch (error) {
+      return c.json(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          message: "Something went wrong during token refresh!",
           success: false,
         },
         500

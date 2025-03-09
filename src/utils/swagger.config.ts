@@ -502,45 +502,6 @@ export const swaggerConfig = {
         },
       },
     },
-    "/api/v1/logout": {
-      post: {
-        tags: ["User"],
-        summary: "Logout endpoint",
-        security: [{ bearerAuth: [] }],
-        responses: {
-          "200": {
-            description: "Logout successful",
-            content: {
-              "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/SuccessResponse",
-                },
-              },
-            },
-          },
-          "401": {
-            description: "Unauthorized",
-            content: {
-              "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
-                },
-              },
-            },
-          },
-          "500": {
-            description: "Server error",
-            content: {
-              "application/json": {
-                schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
     "/api/v1/me": {
       get: {
         tags: ["User"],
@@ -577,6 +538,84 @@ export const swaggerConfig = {
           },
           "500": {
             description: "Server error",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/api/v1/logout": {
+      post: {
+        tags: ["User"],
+        summary: "Logout a user",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": {
+            description: "Logout successful",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/SuccessResponse",
+                },
+              },
+            },
+          },
+          "401": {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/api/v1/refresh": {
+      get: {
+        tags: ["User"],
+        summary: "Refresh access token",
+        parameters: [
+          {
+            name: "token",
+            in: "query",
+            required: true,
+            schema: { type: "string" },
+            description: "Refresh token",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Token refreshed successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Token refreshed successfully!",
+                    },
+                    token: {
+                      type: "string",
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    },
+                    user: { $ref: "#/components/schemas/UserResponse" },
+                    success: { type: "boolean", example: true },
+                  },
+                },
+              },
+            },
+          },
+          "400": {
+            description: "Missing refresh token",
             content: {
               "application/json": {
                 schema: {

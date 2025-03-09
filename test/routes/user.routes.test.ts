@@ -1,11 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { userRouter } from "../../src/routes/user.routes";
 import { UserController } from "../../src/controllers/user.controller";
 import { authMiddleware } from "../../src/middlewares/auth.middleware";
 
 vi.mock("../../src/middlewares/auth.middleware", () => ({
   authMiddleware: vi.fn((c, next) => {
-    // Attach a mock user object to the context
     c.set("user", { id: "test-id", email: "test@example.com" });
     return next();
   }),
@@ -16,15 +15,59 @@ vi.mock("../../src/controllers/user.controller", () => ({
     postUser: vi.fn((c) => c.json({ success: true }, 201)),
     getUserById: vi.fn((c) => c.json({ id: "test-id" })),
     getUserByEmail: vi.fn((c) => c.json({ email: "test@example.com" })),
-    deleteUser: vi.fn((c) => c.json({ id: "deleted-id" }, 200)),
-    me: vi.fn((c) => {
-      const user = c.get("user");
-      return c.json({ user });
-    }),
+    login: vi.fn((c) => c.json({ 
+      success: true,
+      token: "test-token",
+      refreshToken: "test-refresh-token",
+      user: { id: "test-id", email: "test@example.com" }
+    })),
+    logout: vi.fn((c) => c.json({ 
+      message: "Logout successful!",
+      success: true 
+    }, 200)),
+    refresh: vi.fn((c) => c.json({ 
+      message: "Token refreshed successfully!",
+      token: "new-access-token",
+      user: {
+        id: "test-id",
+        name: "Test User",
+        email: "test@example.com",
+        refreshToken: "new-refresh-token"
+      },
+      success: true
+    }, 200)),
+    me: vi.fn((c) =>
+      c.json({
+        message: "Authorized",
+        success: true,
+        payload: {
+          id: "r7flvzwcjiclfjgzdi0pzziq",
+          email: "john@example.com",
+          exp: 1741529684,
+        },
+      })
+    ),
   },
 }));
 
+vi.mock("../../src/middlewares/auth.middleware.ts", async () => {
+  return {
+    authMiddleware: vi.fn(async (c, next) => {
+      c.set("jwtPayload", {
+        id: "r7flvzwcjiclfjgzdi0pzziq",
+        email: "john@example.com",
+        exp: 1741529684,
+      });
+      await next();
+    }),
+  };
+});
+
 describe("User Routes", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("should handle user registration", async () => {
     const res = await userRouter.request("/register", { method: "POST" });
     expect(res.status).toBe(201);
@@ -44,26 +87,76 @@ describe("User Routes", () => {
     expect(UserController.getUserByEmail).toHaveBeenCalled();
   });
 
-  it("should handle logout", async () => {});
-  it("should handle delete user", async () => {
-    const res = await userRouter.request("/deleteUser", { method: "DELETE" });
+  it("should handle user login", async () => {
+    const res = await userRouter.request("/login", { 
+      method: "POST",
+      body: JSON.stringify({
+        email: "test@example.com",
+        password: "password123"
+      })
+    });
     expect(res.status).toBe(200);
-    expect(UserController.deleteUser).toHaveBeenCalled();
+    expect(UserController.login).toHaveBeenCalled();
     const data = await res.json();
-    expect(data).toEqual({ id: "deleted-id" });
+    expect(data).toStrictEqual({ 
+      success: true,
+      token: "test-token",
+      refreshToken: "test-refresh-token",
+      user: { id: "test-id", email: "test@example.com" }
+    });
   });
-  it("should get current user from /me endpoint", async () => {
-    const res = await userRouter.request("/me");
-    expect(res.status).toBe(200);
 
+  it("should handle logout with authentication", async () => {
+    const res = await userRouter.request("/logout", { 
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer test-token"
+      }
+    });
+    expect(res.status).toBe(200);
+    expect(UserController.logout).toHaveBeenCalled();
     const data = await res.json();
-    expect(data).toEqual({
+    expect(data).toStrictEqual({ 
+      message: "Logout successful!",
+      success: true 
+    });
+  });
+
+  it("should handle token refresh with valid refresh token", async () => {
+    const res = await userRouter.request("/refresh?token=test-refresh-token");
+    expect(res.status).toBe(200);
+    expect(UserController.refresh).toHaveBeenCalled();
+    const data = await res.json();
+    expect(data).toStrictEqual({ 
+      message: "Token refreshed successfully!",
+      token: "new-access-token",
       user: {
         id: "test-id",
+        name: "Test User",
         email: "test@example.com",
+        refreshToken: "new-refresh-token"
+      },
+      success: true
+    });
+  });
+
+  it("should get current user with authentication", async () => {
+    const res = await userRouter.request("/me", {
+      headers: {
+        "Authorization": "Bearer test-token"
+      }
+    });
+    expect(res.status).toBe(200);
+    expect(UserController.me).toHaveBeenCalled();
+    const data = await res.json();
+    expect(data).toStrictEqual({
+      message: "Authorized",
+      success: true,
+      payload: {
+        id: "r7flvzwcjiclfjgzdi0pzziq",
+        email: "john@example.com",
+        exp: 1741529684,
       },
     });
-    expect(UserController.me).toHaveBeenCalled();
-    expect(authMiddleware).toHaveBeenCalled();
   });
 });

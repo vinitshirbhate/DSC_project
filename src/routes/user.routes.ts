@@ -7,8 +7,6 @@ export const userRouter = new Hono()
   .post("/register", UserController.postUser)
   .get("/user", UserController.getUserById)
   .get("/user/:email", UserController.getUserByEmail)
-  .post("/logout", async (c) => {
-    return c.text("Hello logout!");
-  })
-  .delete("/deleteUser", UserController.deleteUser)
+  .post("/logout", authMiddleware, UserController.logout)
+  .get("/refresh", UserController.refresh)
   .get("/me", authMiddleware, UserController.me);
