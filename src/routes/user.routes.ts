@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { UserController } from "../controllers/user.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { rateLimiter } from "../middlewares/rate.limitter";
 
 export const userRouter = new Hono()
   .post("/login", UserController.login)
@@ -10,3 +11,5 @@ export const userRouter = new Hono()
   .post("/logout", authMiddleware, UserController.logout)
   .get("/refresh", UserController.refresh)
   .get("/me", authMiddleware, UserController.me);
+
+userRouter.use(rateLimiter)
