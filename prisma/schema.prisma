@@ -17,8 +17,7 @@ model User {
 }
 
 model Blacklist {
-  id           String   @id @default(cuid())
-  accessToken  String
-  refershToken String
-  createdAt    DateTime @default(now())
+  id        String   @id @default(cuid())
+  token     String
+  createdAt DateTime @default(now())
 }
