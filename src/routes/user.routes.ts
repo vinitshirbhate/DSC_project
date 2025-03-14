@@ -4,11 +4,10 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 import { rateLimiter } from "../middlewares/rate.limitter";
 
 export const userRouter = new Hono()
-  .use(rateLimiter)
-  .post("/login", UserController.login)
-  .post("/register", UserController.postUser)
-  .get("/user", UserController.getUserById)
-  .get("/user/:email", UserController.getUserByEmail)
-  .post("/logout", authMiddleware, UserController.logout)
-  .get("/refresh", UserController.refresh)
-  .get("/me", authMiddleware, UserController.me);
+  .post("/login", rateLimiter, UserController.login)
+  .post("/register", rateLimiter, UserController.postUser)
+  .get("/user", rateLimiter, UserController.getUserById)
+  .get("/user/:email", rateLimiter, UserController.getUserByEmail)
+  .post("/logout", rateLimiter, authMiddleware, UserController.logout)
+  .get("/refresh", rateLimiter, UserController.refresh)
+  .get("/me", rateLimiter, authMiddleware, UserController.me);
