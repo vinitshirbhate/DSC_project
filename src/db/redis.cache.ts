@@ -5,6 +5,7 @@ import { MapData } from "../utils/types";
 export class RedisSingleton {
   private static instance: Redis | null = null;
   private static DEFAULT_TTL = 3600;
+  private static RATE_LIMIT_TTL = 600;
 
   private constructor() {}
 
@@ -26,7 +27,7 @@ export class RedisSingleton {
     return this.DEFAULT_TTL;
   }
 
-  static async set(c: Context, key: string, value: MapData): Promise<void> {
+  static async set(c: Context, key: string, value: MapData | number): Promise<void> {
     const redis = this.getInstance(c);
     await redis.set(key, JSON.stringify(value), { ex: this.DEFAULT_TTL });
   }
