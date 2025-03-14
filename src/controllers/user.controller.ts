@@ -43,7 +43,7 @@ export class UserController {
         );
       }
 
-      const hashed = await hash(isValid.data.password,);
+      const hashed = await hash(isValid.data.password);
       const { name, email } = isValid.data;
       const userId = createId();
 
@@ -90,7 +90,7 @@ export class UserController {
             id: user.id,
             name: user.name,
             email: user.email,
-            refreshToken
+            refreshToken,
           },
           success: true,
         },
@@ -376,7 +376,6 @@ export class UserController {
         },
         200
       );
-
     } catch (error) {
       if (
         error instanceof Error &&
@@ -611,11 +610,11 @@ export class UserController {
           401
         );
       }
-      
+
       const userId = payload.id;
       const prisma = await getPrismaClient(c.env.DATABASE_URL);
       const redisClient = RedisSingleton.getInstance(c);
-      
+
       await prisma.user.update({
         where: { id: userId },
         data: {
@@ -623,10 +622,16 @@ export class UserController {
           refreshToken: "",
         },
       });
-      
+
+      await prisma.blacklist.create({
+        data : {
+          token : payload.token
+        }
+      })
+
       MemoryCache.delete(`access:${userId}`);
       await redisClient.del(`access:${userId}`);
-      
+
       return c.json(
         {
           message: "Logout successful!",
@@ -651,7 +656,7 @@ export class UserController {
       const prisma = getPrismaClient(c.env.DATABASE_URL);
       const redisClient = RedisSingleton.getInstance(c);
 
-      const refreshToken = c.req.query('token');
+      const refreshToken = c.req.query("token");
 
       if (!refreshToken) {
         return c.json(
@@ -663,6 +668,20 @@ export class UserController {
           400
         );
       }
+
+      const isRevoked = await prisma.blacklist.findFirst({
+        where : {
+          token : refreshToken
+        }
+      })
+
+      if(isRevoked) throw new Error("Token is revoked!")
+
+      await prisma.blacklist.create({
+        data : {
+          token : refreshToken
+        }
+      })
 
       const user = await prisma.user.findFirst({
         where: { refreshToken },
@@ -679,16 +698,17 @@ export class UserController {
         );
       }
 
-      const exp = Math.floor(Date.now() / 1000) + 60 * 60; 
-      const { accessToken, refreshToken: newRefreshToken } = await generateToken(
-        {
-          id: user.id,
-          email: user.email,
-          exp,
-        },
-        c.env.ACCESS_SECRET,
-        c.env.REFRESH_SECRET
-      );
+      const exp = Math.floor(Date.now() / 1000) + 60 * 60;
+      const { accessToken, refreshToken: newRefreshToken } =
+        await generateToken(
+          {
+            id: user.id,
+            email: user.email,
+            exp,
+          },
+          c.env.ACCESS_SECRET,
+          c.env.REFRESH_SECRET
+        );
 
       await prisma.user.update({
         where: { id: user.id },
