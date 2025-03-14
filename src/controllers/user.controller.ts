@@ -669,6 +669,20 @@ export class UserController {
         );
       }
 
+      const isRevoked = await prisma.blacklist.findFirst({
+        where : {
+          token : refreshToken
+        }
+      })
+
+      if(isRevoked) throw new Error("Token is revoked!")
+
+      await prisma.blacklist.create({
+        data : {
+          token : refreshToken
+        }
+      })
+
       const user = await prisma.user.findFirst({
         where: { refreshToken },
       });
