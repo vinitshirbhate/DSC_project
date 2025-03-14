@@ -3,15 +3,17 @@ import { RedisSingleton } from "../db/redis.cache";
 import { RateLimitCache } from "../db/ratelimit.memory";
 
 export const rateLimiter = async (c: Context, next: Next) => {
-  const LIMIT = 5;
+  const LIMIT = 10;
   const WINDOW = 60; 
 
   try {
     const redisClient = RedisSingleton.getInstance(c);
     const ip = c.req.header("cf-connecting-ip") || c.req.header("CF-Connecting-IP");
+    const path = c.req.routePath;
+
     if (!ip) throw new Error("IP address not found");
 
-    const cacheKey = `ip:${ip}`;
+    const cacheKey = `ip:${ip}:${path}`;
 
     let reqs = RateLimitCache.getIp(cacheKey);
     if (reqs >= LIMIT) throw new Error("RATE-LIMIT");
