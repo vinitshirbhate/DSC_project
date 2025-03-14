@@ -1,12 +1,12 @@
-import bcrypt from "bcryptjs";
+import { createId } from "@paralleldrive/cuid2";
 import { Context } from "hono";
 import { MemoryCache } from "../db/memory.cache";
 import { getPrismaClient } from "../db/prisma";
+import { RedisSingleton } from "../db/redis.cache";
 import { loginSchema, registerSchema } from "../models/user.model";
+import { hash, verifyPassword } from "../utils/password.hash";
 import { generateToken } from "../utils/generateToken";
 import { MapData, UserMapData } from "../utils/types";
-import { RedisSingleton } from "../db/redis.cache";
-import { createId } from "@paralleldrive/cuid2";
 
 export class UserController {
   static async postUser(c: Context) {
@@ -43,7 +43,7 @@ export class UserController {
         );
       }
 
-      const hash = await bcrypt.hash(isValid.data.password, 12);
+      const hashed = await hash(isValid.data.password,);
       const { name, email } = isValid.data;
       const userId = createId();
 
@@ -64,7 +64,7 @@ export class UserController {
           id: userId,
           name,
           email,
-          password: hash,
+          password: hashed,
           accessToken,
           refreshToken,
         },
@@ -476,8 +476,6 @@ export class UserController {
       const body = await c.req.json();
       const isValid = loginSchema.safeParse(body);
 
-      console.log(isValid.data);
-
       if (!isValid.success) {
         return c.json(
           {
@@ -506,7 +504,7 @@ export class UserController {
         );
       }
 
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const isPasswordValid = await verifyPassword(password, user.password);
 
       if (!isPasswordValid) {
         return c.json(
