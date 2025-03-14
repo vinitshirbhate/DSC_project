@@ -4,25 +4,24 @@ import { RateLimitCache } from "../db/ratelimit.memory";
 
 export const rateLimiter = async (c: Context, next: Next) => {
   const LIMIT = 10;
-  const WINDOW = 60; 
+  const WINDOW = 60;
 
   try {
     const redisClient = RedisSingleton.getInstance(c);
-    const ip = c.req.header("cf-connecting-ip") || c.req.header("CF-Connecting-IP");
+    const ip =
+      c.req.header("cf-connecting-ip") ??
+      c.req.header("CF-Connecting-IP") ??
+      "127.0.0.1";
     const path = c.req.routePath;
-
-    if (!ip) throw new Error("IP address not found");
-
     const cacheKey = `ip:${ip}:${path}`;
 
-    let reqs = RateLimitCache.getIp(cacheKey);
+    let reqs = RateLimitCache.getIp(cacheKey) ?? 0;
+
     if (reqs >= LIMIT) throw new Error("RATE-LIMIT");
-    
+
     RateLimitCache.incrementIp(cacheKey, WINDOW);
 
-    let reqs_redis = await redisClient.get<number>(cacheKey);
-
-    reqs_redis = reqs_redis ? reqs_redis : 0;
+    let reqs_redis = (await redisClient.get<number>(cacheKey)) ?? 0;
 
     if (reqs_redis >= LIMIT) throw new Error("RATE-LIMIT");
 
